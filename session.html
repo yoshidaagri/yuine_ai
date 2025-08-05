@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集合知AI セッション</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f8f9ff 50%, #ffffff 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(25, 118, 210, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e88e5 0%, #1976d2 50%, #1565c0 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header h1, .header p, .session-info {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .session-info {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .session-theme {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .session-timer {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffeb3b;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .progress-bar {
+            background: #e3f2fd;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(135deg, #1e88e5 0%, #1976d2 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .question-section {
+            background: linear-gradient(135deg, #f3f8ff 0%, #ffffff 100%);
+            border: 1px solid rgba(25, 118, 210, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(25, 118, 210, 0.08);
+            display: none;
+        }
+        
+        .question-section.active {
+            display: block;
+            animation: slideInUp 0.5s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .question-number {
+            background: linear-gradient(135deg, #1e88e5 0%, #1976d2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .question-type {
+            color: #1565c0;
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .input-area {
+            margin-bottom: 20px;
+        }
+        
+        .input-area label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .input-area textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        .input-area textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+        
+        .ai-response {
+            background: rgba(25, 118, 210, 0.05);
+            border-left: 4px solid #1976d2;
+            border-radius: 0 8px 8px 0;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .ai-response.show {
+            display: block;
+            animation: slideInDown 0.5s ease-out;
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .ai-response h4 {
+            color: #1565c0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .ai-response-text {
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #1e88e5 0%, #1976d2 50%, #1565c0 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover::before {
+            transform: translateX(0);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.3);
+        }
+        
+        .btn:disabled {
+            background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 50%, #2196f3 100%);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+        
+        .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(25, 118, 210, 0.1);
+            border-top: 3px solid #1976d2;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+            color: #c62828;
+            border: 1px solid rgba(198, 40, 40, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            display: none;
+            font-weight: 500;
+            box-shadow: 0 2px 12px rgba(198, 40, 40, 0.1);
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+        
+        .completion-screen.show {
+            display: block;
+            animation: slideInUp 0.5s ease-out;
+        }
+        
+        .completion-icon {
+            font-size: 64px;
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+        
+        .completion-title {
+            font-size: 24px;
+            color: #1565c0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .completion-message {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .participant-name-section {
+            background: linear-gradient(135deg, #f3f8ff 0%, #ffffff 100%);
+            border: 1px solid rgba(25, 118, 210, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .participant-name-section h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+        
+        .participant-name-input {
+            max-width: 300px;
+            margin: 0 auto 20px;
+        }
+        
+        .participant-name-input input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        
+        .participant-name-input input:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .question-section {
+                padding: 20px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>集合知AI セッション</h1>
+            <p>AIと対話して意見を共有しましょう</p>
+            
+            <div class="session-info">
+                <div class="session-theme" id="sessionTheme">テーマを読み込み中...</div>
+                <div class="session-timer" id="sessionTimer">残り時間: 05:00</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- 参加者名入力 -->
+            <div id="participantNameSection" class="participant-name-section">
+                <h3>参加者情報</h3>
+                <div class="participant-name-input">
+                    <input type="text" id="participantName" placeholder="あなたの名前（匿名可）" maxlength="50">
+                </div>
+                <button class="btn btn-success" id="startSessionBtn">セッションを開始</button>
+            </div>
+            
+            <!-- プログレスバー -->
+            <div class="progress-bar" style="display: none;" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <!-- エラー表示 -->
+            <div id="error" class="error"></div>
+            
+            <!-- ローディング -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">AIが回答を生成中...</p>
+            </div>
+            
+            <!-- 質問セクション（質問1） -->
+            <div id="question1Section" class="question-section">
+                <div class="question-header">
+                    <div class="question-number">1</div>
+                    <div>
+                        <div class="question-type">定型質問1: 基本的な立場・意見</div>
+                    </div>
+                </div>
+                <div class="question-text" id="question1Text">質問を読み込み中...</div>
+                
+                <div class="input-area">
+                    <label for="answer1">あなたの回答:</label>
+                    <textarea id="answer1" placeholder="あなたの考えや意見を自由に入力してください..."></textarea>
+                </div>
+                
+                <div class="ai-response" id="aiResponse1">
+                    <h4>💡 AIからのフィードバック</h4>
+                    <div class="ai-response-text" id="aiResponseText1"></div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="getAiFeedback1">AIにフィードバックを求める</button>
+                    <button class="btn" id="nextQuestion1" disabled>次の質問へ</button>
+                </div>
+            </div>
+            
+            <!-- 質問セクション（質問2） -->
+            <div id="question2Section" class="question-section">
+                <div class="question-header">
+                    <div class="question-number">2</div>
+                    <div>
+                        <div class="question-type">定型質問2: 具体的な経験・事例</div>
+                    </div>
+                </div>
+                <div class="question-text" id="question2Text">質問を読み込み中...</div>
+                
+                <div class="input-area">
+                    <label for="answer2">あなたの回答:</label>
+                    <textarea id="answer2" placeholder="具体的な経験や事例があれば教えてください..."></textarea>
+                </div>
+                
+                <div class="ai-response" id="aiResponse2">
+                    <h4>💡 AIからのフィードバック</h4>
+                    <div class="ai-response-text" id="aiResponseText2"></div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="getAiFeedback2">AIにフィードバックを求める</button>
+                    <button class="btn" id="nextQuestion2" disabled>次の質問へ</button>
+                </div>
+            </div>
+            
+            <!-- 質問セクション（深掘り質問） -->
+            <div id="question3Section" class="question-section">
+                <div class="question-header">
+                    <div class="question-number">3</div>
+                    <div>
+                        <div class="question-type">深掘り質問: AI対話で議論を深める</div>
+                    </div>
+                </div>
+                <div class="question-text" id="question3Text">質問を読み込み中...</div>
+                
+                <div class="input-area">
+                    <label for="answer3">あなたの回答:</label>
+                    <textarea id="answer3" placeholder="自由に議論を深めてください..."></textarea>
+                </div>
+                
+                <div class="ai-response" id="aiResponse3">
+                    <h4>💡 AIからのフィードバック</h4>
+                    <div class="ai-response-text" id="aiResponseText3"></div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="getAiFeedback3">AIと議論を続ける</button>
+                    <button class="btn btn-success" id="completeSession" disabled>セッション完了</button>
+                </div>
+            </div>
+            
+            <!-- セッション完了画面 -->
+            <div id="completionScreen" class="completion-screen">
+                <div class="completion-icon">🎉</div>
+                <div class="completion-title">セッション完了！</div>
+                <div class="completion-message">
+                    ご参加ありがとうございました。<br>
+                    あなたの意見がセッションの結果に反映されます。
+                </div>
+                <button class="btn btn-secondary" onclick="window.close()">画面を閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // デバッグ機能
+        const DEBUG_SESSION = {
+            log: (message, data = null) => {
+                const timestamp = new Date().toLocaleString('ja-JP');
+                console.log(`[SESSION ${timestamp}] ${message}`);
+                if (data) console.log('データ:', data);
+            },
+            error: (message, error = null) => {
+                const timestamp = new Date().toLocaleString('ja-JP');
+                console.error(`[SESSION ERROR ${timestamp}] ${message}`);
+                if (error) console.error('エラー詳細:', error);
+            }
+        };
+        
+        // グローバル変数
+        let sessionId = null;
+        let participantId = null;
+        let currentQuestion = 0;
+        let questions = [];
+        let sessionTimer = null;
+        let timeRemaining = 300; // 5分 = 300秒
+        let sessionData = {
+            theme: '',
+            answers: [],
+            aiResponses: []
+        };
+        
+        DEBUG_SESSION.log('session.html読み込み開始');
+        
+        // DOM要素
+        const elements = {
+            participantNameSection: document.getElementById('participantNameSection'),
+            participantName: document.getElementById('participantName'),
+            startSessionBtn: document.getElementById('startSessionBtn'),
+            progressBar: document.getElementById('progressBar'),
+            progressFill: document.getElementById('progressFill'),
+            sessionTheme: document.getElementById('sessionTheme'),
+            sessionTimer: document.getElementById('sessionTimer'),
+            loading: document.getElementById('loading'),
+            loadingText: document.getElementById('loadingText'),
+            error: document.getElementById('error'),
+            completionScreen: document.getElementById('completionScreen'),
+            
+            // 質問セクション
+            question1Section: document.getElementById('question1Section'),
+            question2Section: document.getElementById('question2Section'),
+            question3Section: document.getElementById('question3Section'),
+            
+            // 質問テキスト
+            question1Text: document.getElementById('question1Text'),
+            question2Text: document.getElementById('question2Text'),
+            question3Text: document.getElementById('question3Text'),
+            
+            // 回答入力
+            answer1: document.getElementById('answer1'),
+            answer2: document.getElementById('answer2'),
+            answer3: document.getElementById('answer3'),
+            
+            // AI応答
+            aiResponse1: document.getElementById('aiResponse1'),
+            aiResponse2: document.getElementById('aiResponse2'),
+            aiResponse3: document.getElementById('aiResponse3'),
+            aiResponseText1: document.getElementById('aiResponseText1'),
+            aiResponseText2: document.getElementById('aiResponseText2'),
+            aiResponseText3: document.getElementById('aiResponseText3'),
+            
+            // ボタン
+            getAiFeedback1: document.getElementById('getAiFeedback1'),
+            getAiFeedback2: document.getElementById('getAiFeedback2'),
+            getAiFeedback3: document.getElementById('getAiFeedback3'),
+            nextQuestion1: document.getElementById('nextQuestion1'),
+            nextQuestion2: document.getElementById('nextQuestion2'),
+            completeSession: document.getElementById('completeSession')
+        };
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            DEBUG_SESSION.log('DOM読み込み完了');
+            try {
+                initializeSession();
+                setupEventListeners();
+                DEBUG_SESSION.log('初期化完了');
+            } catch (error) {
+                DEBUG_SESSION.error('初期化エラー', error);
+                showError('初期化エラー: ' + error.message);
+                // エラー時に緊急表示
+                document.body.innerHTML = `
+                    <div style="padding: 20px; color: red; background: #ffe6e6; border: 1px solid red; margin: 20px;">
+                        <h2>初期化エラー</h2>
+                        <p><strong>エラー内容:</strong> ${error.message}</p>
+                        <p><strong>URL:</strong> ${window.location.href}</p>
+                        <p><strong>時刻:</strong> ${new Date().toLocaleString()}</p>
+                        <pre>${error.stack}</pre>
+                    </div>
+                `;
+            }
+        });
+        
+        // グローバルエラーハンドラ
+        window.addEventListener('error', function(event) {
+            DEBUG_SESSION.error('グローバルエラー', event.error);
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: red; color: white; padding: 10px; z-index: 9999;';
+            errorDiv.innerHTML = `JavaScript エラー: ${event.message} (${event.filename}:${event.lineno})`;
+            document.body.appendChild(errorDiv);
+        });
+        
+        // セッション初期化
+        function initializeSession() {
+            DEBUG_SESSION.log('セッション初期化開始');
+            
+            try {
+                // サーバーサイドから渡されたパラメータを取得
+                const serverSessionId = '<?= sessionId ?>';
+                const serverParams = '<?= pageParams ?>';
+                
+                // serverParamsをパース（JSON文字列の場合）
+                let parsedServerParams = {};
+                try {
+                    parsedServerParams = serverParams ? JSON.parse(serverParams) : {};
+                } catch (e) {
+                    DEBUG_SESSION.warn('serverParamsのパースに失敗', { serverParams, error: e.message });
+                }
+                
+                DEBUG_SESSION.log('サーバーサイドパラメータ確認', {
+                    serverSessionId,
+                    serverParams,
+                    parsedServerParams,
+                    href: window.location.href
+                });
+                
+                // セッションIDをサーバーサイドパラメータから取得
+                if (serverSessionId && serverSessionId !== '') {
+                    sessionId = serverSessionId;
+                    DEBUG_SESSION.log('セッションID取得成功（サーバーサイド）', { sessionId });
+                } else {
+                    // フォールバック: URLパラメータから取得を試行
+                    DEBUG_SESSION.log('フォールバック: URLパラメータから取得を試行');
+                    const urlParams = new URLSearchParams(window.location.search);
+                    sessionId = urlParams.get('sessionId');
+                    
+                    DEBUG_SESSION.log('URLパラメータ確認', {
+                        search: window.location.search,
+                        sessionId,
+                        allParams: Object.fromEntries(urlParams)
+                    });
+                }
+                
+                if (!sessionId || sessionId === '') {
+                    DEBUG_SESSION.error('セッションIDが設定されていません');
+                    showError('セッションIDが設定されていません');
+                    document.getElementById('sessionTheme').textContent = 'エラー: セッションIDが未設定';
+                    return;
+                }
+                
+                // 参加者IDを生成
+                participantId = 'participant_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                DEBUG_SESSION.log('参加者ID生成', { participantId });
+                
+                // セッション情報を読み込み
+                DEBUG_SESSION.log('セッション情報読み込み開始');
+                loadSessionInfo();
+                
+            } catch (error) {
+                DEBUG_SESSION.error('initializeSession内エラー', error);
+                showError('セッション初期化エラー: ' + error.message);
+                throw error;
+            }
+        }
+        
+        // イベントリスナー設定
+        function setupEventListeners() {
+            elements.startSessionBtn.addEventListener('click', startSession);
+            
+            // AI フィードバックボタン
+            elements.getAiFeedback1.addEventListener('click', () => getAiFeedback(1));
+            elements.getAiFeedback2.addEventListener('click', () => getAiFeedback(2));
+            elements.getAiFeedback3.addEventListener('click', () => getAiFeedback(3));
+            
+            // 次の質問ボタン
+            elements.nextQuestion1.addEventListener('click', () => moveToQuestion(2));
+            elements.nextQuestion2.addEventListener('click', () => moveToQuestion(3));
+            elements.completeSession.addEventListener('click', completeSession);
+            
+            // 回答入力のイベント
+            elements.answer1.addEventListener('input', () => validateAnswer(1));
+            elements.answer2.addEventListener('input', () => validateAnswer(2));
+            elements.answer3.addEventListener('input', () => validateAnswer(3));
+        }
+        
+        // セッション情報読み込み
+        function loadSessionInfo() {
+            DEBUG_SESSION.log('セッション情報読み込み開始', { sessionId });
+            showLoading(true, 'セッション情報を読み込み中...');
+            
+            try {
+                // google.script.runの存在確認
+                if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                    DEBUG_SESSION.error('google.script.runが利用できません');
+                    showError('Google Apps Script API が利用できません。WebApp環境で実行してください。');
+                    return;
+                }
+                
+                DEBUG_SESSION.log('google.script.run呼び出し開始', { sessionId });
+                google.script.run
+                    .withSuccessHandler(handleSessionInfoLoaded)
+                    .withFailureHandler(handleError)
+                    .getSessionInfo(sessionId);
+                DEBUG_SESSION.log('google.script.run呼び出し完了');
+                
+            } catch (error) {
+                DEBUG_SESSION.error('google.script.run呼び出しエラー', error);
+                showError('APIアクセスエラー: ' + error.message);
+                showLoading(false);
+            }
+        }
+        
+        function handleSessionInfoLoaded(sessionInfo) {
+            DEBUG_SESSION.log('セッション情報受信', sessionInfo);
+            showLoading(false);
+            
+            if (!sessionInfo || !sessionInfo.success) {
+                DEBUG_SESSION.error('セッション情報取得失敗', sessionInfo);
+                showError('セッション情報の読み込みに失敗しました: ' + (sessionInfo?.message || '不明なエラー'));
+                return;
+            }
+            
+            sessionData.theme = sessionInfo.theme;
+            questions = sessionInfo.questions;
+            
+            DEBUG_SESSION.log('セッションデータ設定', { 
+                theme: sessionData.theme, 
+                questions: questions,
+                questionsType: typeof questions,
+                questionsLength: questions ? questions.length : 'null',
+                question0: questions ? questions[0] : 'null',
+                question1: questions ? questions[1] : 'null',
+                question2: questions ? questions[2] : 'null'
+            });
+            
+            elements.sessionTheme.textContent = sessionInfo.theme;
+            
+            // DOM要素の存在確認
+            DEBUG_SESSION.log('DOM要素確認', {
+                question1Text: !!elements.question1Text,
+                question2Text: !!elements.question2Text,
+                question3Text: !!elements.question3Text
+            });
+            
+            // 質問テキストを設定
+            try {
+                if (elements.question1Text) {
+                    elements.question1Text.textContent = questions[0] || '質問1が読み込めませんでした';
+                    DEBUG_SESSION.log('質問1設定完了', { text: elements.question1Text.textContent });
+                }
+                
+                if (elements.question2Text) {
+                    elements.question2Text.textContent = questions[1] || '質問2が読み込めませんでした';
+                    DEBUG_SESSION.log('質問2設定完了', { text: elements.question2Text.textContent });
+                }
+                
+                if (elements.question3Text) {
+                    elements.question3Text.textContent = questions[2] || '質問3が読み込めませんでした';
+                    DEBUG_SESSION.log('質問3設定完了', { text: elements.question3Text.textContent });
+                }
+            } catch (error) {
+                DEBUG_SESSION.error('質問テキスト設定エラー', error);
+                showError('質問テキストの設定に失敗しました: ' + error.message);
+            }
+            
+            DEBUG_SESSION.log('セッション情報設定完了');
+        }
+        
+        // セッション開始
+        function startSession() {
+            const name = elements.participantName.value.trim();
+            if (!name) {
+                showError('名前を入力してください');
+                return;
+            }
+            
+            // UI切り替え
+            elements.participantNameSection.style.display = 'none';
+            elements.progressBar.style.display = 'block';
+            elements.question1Section.classList.add('active');
+            
+            // タイマー開始
+            startTimer();
+            
+            // プログレス更新
+            updateProgress();
+        }
+        
+        // タイマー開始
+        function startTimer() {
+            sessionTimer = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(sessionTimer);
+                    autoCompleteSession();
+                }
+            }, 1000);
+        }
+        
+        // タイマー表示更新
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            elements.sessionTimer.textContent = `残り時間: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // 残り時間が少なくなったら色を変える
+            if (timeRemaining <= 60) {
+                elements.sessionTimer.style.color = '#ff5722';
+            } else if (timeRemaining <= 120) {
+                elements.sessionTimer.style.color = '#ff9800';
+            }
+        }
+        
+        // プログレス更新
+        function updateProgress() {
+            const progress = (currentQuestion / 3) * 100;
+            elements.progressFill.style.width = progress + '%';
+        }
+        
+        // 質問移動
+        function moveToQuestion(questionNumber) {
+            // 前の質問の回答を強制的に保存（AIフィードバック取得有無に関わらず）
+            const previousQuestionNumber = questionNumber - 1;
+            if (previousQuestionNumber >= 1 && previousQuestionNumber <= 3) {
+                const previousAnswer = elements[`answer${previousQuestionNumber}`].value.trim();
+                if (previousAnswer) {
+                    sessionData.answers[previousQuestionNumber - 1] = previousAnswer;
+                    DEBUG_SESSION.log('質問移動時の回答保存', {
+                        questionNumber: previousQuestionNumber,
+                        answerLength: previousAnswer.length,
+                        hasAiResponse: !!sessionData.aiResponses[previousQuestionNumber - 1]
+                    });
+                }
+            }
+            
+            // 現在の質問を非表示
+            document.querySelector('.question-section.active').classList.remove('active');
+            
+            // 次の質問を表示
+            currentQuestion = questionNumber - 1;
+            const nextSection = document.getElementById(`question${questionNumber}Section`);
+            nextSection.classList.add('active');
+            
+            updateProgress();
+        }
+        
+        // 回答検証
+        function validateAnswer(questionNumber) {
+            const answer = elements[`answer${questionNumber}`].value.trim();
+            const nextBtn = questionNumber < 3 ? 
+                elements[`nextQuestion${questionNumber}`] : 
+                elements.completeSession;
+            
+            nextBtn.disabled = answer.length < 10; // 最低10文字
+        }
+        
+        // AI フィードバック取得
+        function getAiFeedback(questionNumber) {
+            const answer = elements[`answer${questionNumber}`].value.trim();
+            
+            if (answer.length < 10) {
+                showError('回答は10文字以上入力してください');
+                return;
+            }
+            
+            showLoading(true, 'AIがフィードバックを生成中...');
+            
+            const data = {
+                sessionId: sessionId,
+                participantId: participantId,
+                questionNumber: questionNumber,
+                question: questions[questionNumber - 1],
+                answer: answer,
+                theme: sessionData.theme
+            };
+            
+            google.script.run
+                .withSuccessHandler((response) => handleAiFeedback(questionNumber, response))
+                .withFailureHandler(handleError)
+                .getAiFeedbackForAnswer(data);
+        }
+        
+        function handleAiFeedback(questionNumber, response) {
+            showLoading(false);
+            
+            if (response && response.success) {
+                const aiResponse = elements[`aiResponse${questionNumber}`];
+                const aiResponseText = elements[`aiResponseText${questionNumber}`];
+                
+                aiResponseText.textContent = response.feedback;
+                aiResponse.classList.add('show');
+                
+                // 回答を保存
+                sessionData.answers[questionNumber - 1] = elements[`answer${questionNumber}`].value.trim();
+                sessionData.aiResponses[questionNumber - 1] = response.feedback;
+                
+                // 次へ進むボタンを有効化
+                if (questionNumber < 3) {
+                    elements[`nextQuestion${questionNumber}`].disabled = false;
+                } else {
+                    elements.completeSession.disabled = false;
+                }
+            } else {
+                showError('AIフィードバックの取得に失敗しました');
+            }
+        }
+        
+        // セッション完了
+        function completeSession() {
+            if (sessionTimer) {
+                clearInterval(sessionTimer);
+            }
+            
+            // プログレスバーを100%に設定（セッション完了表示）
+            elements.progressFill.style.width = '100%';
+            
+            showLoading(true, 'セッションを完了中...');
+            
+            // 全ての回答を強制的に収集（AIフィードバック取得有無に関わらず）
+            sessionData.answers[0] = elements.answer1.value.trim();
+            sessionData.answers[1] = elements.answer2.value.trim();
+            sessionData.answers[2] = elements.answer3.value.trim();
+            
+            // AIレスポンスがない場合は空文字列で埋める
+            for (let i = 0; i < 3; i++) {
+                if (!sessionData.aiResponses[i]) {
+                    sessionData.aiResponses[i] = '';
+                }
+            }
+            
+            DEBUG_SESSION.log('セッション完了データ収集', {
+                sessionId: sessionId,
+                participantId: participantId,
+                answers: sessionData.answers.map((answer, i) => ({
+                    questionNumber: i + 1,
+                    hasAnswer: !!answer && answer.trim() !== '',
+                    answerLength: answer ? answer.length : 0,
+                    hasAiResponse: !!sessionData.aiResponses[i] && sessionData.aiResponses[i].trim() !== ''
+                })),
+                totalAnswers: sessionData.answers.filter(a => a && a.trim() !== '').length
+            });
+            
+            const completionData = {
+                sessionId: sessionId,
+                participantId: participantId,
+                participantName: elements.participantName.value.trim(),
+                theme: sessionData.theme,
+                answers: sessionData.answers,
+                aiResponses: sessionData.aiResponses
+            };
+            
+            google.script.run
+                .withSuccessHandler(handleSessionCompleted)
+                .withFailureHandler(handleError)
+                .saveSessionResults(completionData);
+        }
+        
+        function handleSessionCompleted(result) {
+            DEBUG_SESSION.log('セッション完了結果受信', {
+                success: result ? result.success : false,
+                message: result ? result.message : 'no result',
+                savedCount: result ? result.savedCount : 'unknown',
+                skippedCount: result ? result.skippedCount : 'unknown'
+            });
+            
+            showLoading(false);
+            
+            if (result && result.success) {
+                // 保存結果の詳細をログ出力
+                if (result.savedCount !== undefined && result.skippedCount !== undefined) {
+                    DEBUG_SESSION.log('保存結果詳細', {
+                        saved: result.savedCount,
+                        skipped: result.skippedCount,
+                        message: result.message
+                    });
+                    
+                    // スキップされた回答がある場合は警告
+                    if (result.skippedCount > 0) {
+                        DEBUG_SESSION.warn(`${result.skippedCount}件の回答がスキップされました`);
+                    }
+                }
+                
+                // 質問セクションを非表示
+                document.querySelector('.question-section.active').classList.remove('active');
+                
+                // 完了画面を表示
+                elements.completionScreen.classList.add('show');
+            } else {
+                DEBUG_SESSION.error('セッション完了失敗', {
+                    result: result,
+                    message: result ? result.message : 'no result'
+                });
+                showError('セッションの完了処理に失敗しました: ' + (result ? result.message : '不明なエラー'));
+            }
+        }
+        
+        // 自動完了（時間切れ）
+        function autoCompleteSession() {
+            showError('制限時間になりました。セッションを自動完了します。');
+            setTimeout(completeSession, 2000);
+        }
+        
+        // ユーティリティ関数
+        function showLoading(show, text = 'AIが回答を生成中...') {
+            elements.loading.classList.toggle('show', show);
+            if (text) {
+                elements.loadingText.textContent = text;
+            }
+        }
+        
+        function showError(message) {
+            elements.error.textContent = message;
+            elements.error.classList.add('show');
+            setTimeout(() => elements.error.classList.remove('show'), 5000);
+        }
+        
+        function handleError(error) {
+            showLoading(false);
+            showError(error.toString());
+        }
+        
+        // ページを離れる前の確認
+        window.addEventListener('beforeunload', function(e) {
+            if (currentQuestion > 0 && !elements.completionScreen.classList.contains('show')) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# 不要なMarkdownファイルを除外（README.md以外）
+*.md
+!README.md
+
+# デバッグ・テスト用ファイル
+session-light.html
+session-debug.html
+session-test-server.html
+test.gs
+
+# システムファイル
+.DS_Store
+Thumbs.db
+
+# IDEファイル
+.vscode/
+.idea/
+
+# ログファイル
+*.log
+
+# 一時ファイル
+*.tmp
+*.temp

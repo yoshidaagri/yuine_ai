@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>セッション結果</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f8f9ff 50%, #ffffff 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(25, 118, 210, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e88e5 0%, #1976d2 50%, #1565c0 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header h1, .header p, .session-info {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .session-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .session-stat {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+        
+        .session-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .session-stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f3f8ff 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(25, 118, 210, 0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .session-theme {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1565c0;
+        }
+        
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #1e88e5 0%, #1976d2 50%, #1565c0 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover::before {
+            transform: translateX(0);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 50%, #2196f3 100%);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+        
+        .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-panel {
+            background: linear-gradient(135deg, #f3f8ff 0%, #ffffff 100%);
+            border: 1px solid rgba(25, 118, 210, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(25, 118, 210, 0.08);
+        }
+        
+        .summary-panel h3 {
+            color: #1565c0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .summary-content {
+            color: #333;
+            line-height: 1.7;
+        }
+        
+        .consensus-point, .divergent-point {
+            background: rgba(25, 118, 210, 0.05);
+            border-left: 4px solid #1976d2;
+            border-radius: 0 8px 8px 0;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .divergent-point {
+            background: rgba(255, 152, 0, 0.05);
+            border-left-color: #ff9800;
+        }
+        
+        .question-results {
+            grid-column: 1 / -1;
+        }
+        
+        .question-tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e5e9;
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+        
+        .question-tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .question-tab.active {
+            color: #1976d2;
+            border-bottom-color: #1976d2;
+            background: rgba(25, 118, 210, 0.05);
+        }
+        
+        .question-tab:hover {
+            background: rgba(25, 118, 210, 0.1);
+        }
+        
+        .question-content {
+            display: none;
+        }
+        
+        .question-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question-header {
+            background: rgba(25, 118, 210, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .question-text {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .responses-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .response-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(25, 118, 210, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .response-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.12);
+        }
+        
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .participant-name {
+            font-weight: 600;
+            color: #1565c0;
+        }
+        
+        
+        .response-text {
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .ai-feedback {
+            background: rgba(76, 175, 80, 0.05);
+            border-left: 3px solid #4caf50;
+            border-radius: 0 6px 6px 0;
+            padding: 12px;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+        
+        .ai-feedback::before {
+            content: '🤖 ';
+            margin-right: 5px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(25, 118, 210, 0.1);
+            border-top: 3px solid #1976d2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+            color: #c62828;
+            border: 1px solid rgba(198, 40, 40, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            display: none;
+            font-weight: 500;
+            box-shadow: 0 2px 12px rgba(198, 40, 40, 0.1);
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+        
+        .back-to-admin {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+        
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .session-info {
+                gap: 15px;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .toolbar-actions {
+                justify-content: center;
+            }
+            
+            .question-tabs {
+                justify-content: flex-start;
+            }
+            
+            .question-tab {
+                padding: 12px 20px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="back-to-admin">
+        <button class="btn btn-secondary" onclick="window.location.href = '?page=admin'">← 管理者画面に戻る</button>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>セッション結果</h1>
+            <p>参加者の意見と分析結果</p>
+            
+            <div class="session-info">
+                <div class="session-stat">
+                    <div class="session-stat-value" id="participantCount">-</div>
+                    <div class="session-stat-label">参加者数</div>
+                </div>
+                <div class="session-stat">
+                    <div class="session-stat-value" id="responseCount">-</div>
+                    <div class="session-stat-label">回答数</div>
+                </div>
+                <div class="session-stat">
+                    <div class="session-stat-value" id="consensusCount">-</div>
+                    <div class="session-stat-label">合意点</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="toolbar">
+                <div class="session-theme" id="sessionTheme">セッションテーマを読み込み中...</div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-success" id="generateSummaryBtn">🤖 AI分析を実行</button>
+                    <button class="btn btn-secondary" id="exportBtn">📄 結果をエクスポート</button>
+                    <button class="btn" id="refreshBtn">🔄 データを更新</button>
+                </div>
+            </div>
+            
+            <!-- ローディング -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">結果を読み込み中...</p>
+            </div>
+            
+            <!-- エラー表示 -->
+            <div id="error" class="error"></div>
+            
+            <!-- 結果表示 -->
+            <div id="resultsContainer" style="display: none;">
+                <div class="results-grid">
+                    <!-- 合意点パネル -->
+                    <div class="summary-panel">
+                        <h3>🤝 合意点・共通認識</h3>
+                        <div class="summary-content" id="consensusPoints">
+                            AI分析を実行すると合意点が表示されます
+                        </div>
+                    </div>
+                    
+                    <!-- 多様な意見パネル -->
+                    <div class="summary-panel">
+                        <h3>🌟 多様な意見・分散点</h3>
+                        <div class="summary-content" id="divergentPoints">
+                            AI分析を実行すると多様な意見が表示されます
+                        </div>
+                    </div>
+                    
+                    <!-- 質問別結果 -->
+                    <div class="summary-panel question-results">
+                        <h3>💬 質問別の回答詳細</h3>
+                        
+                        <div class="question-tabs">
+                            <button class="question-tab active" data-question="1">定型質問1</button>
+                            <button class="question-tab" data-question="2">定型質問2</button>
+                            <button class="question-tab" data-question="3">深掘り質問</button>
+                        </div>
+                        
+                        <div id="questionContent1" class="question-content active">
+                            <div class="question-header">
+                                <div class="question-text" id="questionText1">質問を読み込み中...</div>
+                            </div>
+                            <div class="responses-list" id="responsesList1"></div>
+                        </div>
+                        
+                        <div id="questionContent2" class="question-content">
+                            <div class="question-header">
+                                <div class="question-text" id="questionText2">質問を読み込み中...</div>
+                            </div>
+                            <div class="responses-list" id="responsesList2"></div>
+                        </div>
+                        
+                        <div id="questionContent3" class="question-content">
+                            <div class="question-header">
+                                <div class="question-text" id="questionText3">質問を読み込み中...</div>
+                            </div>
+                            <div class="responses-list" id="responsesList3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 空の状態 -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <h3>まだ回答がありません</h3>
+                <p>参加者がセッションを完了すると、ここに結果が表示されます。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        let sessionId = null;
+        let sessionData = null;
+        let currentTab = 1;
+        
+        // DOM要素
+        const elements = {
+            loading: document.getElementById('loading'),
+            loadingText: document.getElementById('loadingText'),
+            error: document.getElementById('error'),
+            resultsContainer: document.getElementById('resultsContainer'),
+            emptyState: document.getElementById('emptyState'),
+            
+            // ヘッダー統計
+            participantCount: document.getElementById('participantCount'),
+            responseCount: document.getElementById('responseCount'),
+            consensusCount: document.getElementById('consensusCount'),
+            
+            // ツールバー
+            sessionTheme: document.getElementById('sessionTheme'),
+            generateSummaryBtn: document.getElementById('generateSummaryBtn'),
+            exportBtn: document.getElementById('exportBtn'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            
+            // サマリーパネル
+            consensusPoints: document.getElementById('consensusPoints'),
+            divergentPoints: document.getElementById('divergentPoints'),
+            
+            // 質問関連
+            questionTabs: document.querySelectorAll('.question-tab'),
+            questionText1: document.getElementById('questionText1'),
+            questionText2: document.getElementById('questionText2'),
+            questionText3: document.getElementById('questionText3'),
+            responsesList1: document.getElementById('responsesList1'),
+            responsesList2: document.getElementById('responsesList2'),
+            responsesList3: document.getElementById('responsesList3')
+        };
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeResults();
+            setupEventListeners();
+        });
+        
+        // 結果画面初期化
+        function initializeResults() {
+            console.log('🔍 [RESULTS] 結果画面初期化開始');
+            
+            // サーバーサイドテンプレート変数からセッションIDを取得
+            const serverSessionId = '<?= sessionId ?>';
+            console.log('📊 [RESULTS] サーバーサイドテンプレート確認', {
+                serverSessionId: serverSessionId,
+                href: window.location.href
+            });
+            
+            sessionId = serverSessionId;
+            
+            // フォールバック: URLパラメータからも取得を試す
+            if (!sessionId || sessionId === '') {
+                console.log('⚠️ [RESULTS] フォールバック: URLパラメータから取得');
+                const urlParams = new URLSearchParams(window.location.search);
+                sessionId = urlParams.get('sessionId');
+                console.log('🔎 [RESULTS] URLパラメータ確認', {
+                    search: window.location.search,
+                    sessionId: sessionId,
+                    allParams: Object.fromEntries(urlParams)
+                });
+            }
+            
+            console.log('✅ [RESULTS] 最終セッションID確認', { 
+                sessionId: sessionId,
+                sessionIdType: typeof sessionId,
+                sessionIdLength: sessionId ? sessionId.length : 'undefined'
+            });
+            
+            if (!sessionId || sessionId === '') {
+                console.error('❌ [RESULTS] セッションIDが指定されていません');
+                showError('セッションIDが指定されていません');
+                return;
+            }
+            
+            // 初回データ読み込み
+            console.log('📱 [RESULTS] データ読み込み開始', { sessionId });
+            loadSessionResults();
+        }
+        
+        // イベントリスナー設定
+        function setupEventListeners() {
+            elements.generateSummaryBtn.addEventListener('click', generateAiSummary);
+            elements.exportBtn.addEventListener('click', exportResults);
+            elements.refreshBtn.addEventListener('click', loadSessionResults);
+            
+            // タブ切り替え
+            elements.questionTabs.forEach(tab => {
+                tab.addEventListener('click', () => switchTab(parseInt(tab.dataset.question)));
+            });
+        }
+        
+        // セッション結果読み込み
+        function loadSessionResults() {
+            showLoading(true, '結果を読み込み中...');
+            hideError();
+            
+            google.script.run
+                .withSuccessHandler(handleSessionResultsLoaded)
+                .withFailureHandler(handleError)
+                .getSessionResults(sessionId);
+        }
+        
+        function handleSessionResultsLoaded(results) {
+            showLoading(false);
+            
+            if (!results || !results.success) {
+                showError('セッション結果の読み込みに失敗しました');
+                return;
+            }
+            
+            sessionData = results;
+            
+            if (results.responseCount === 0) {
+                elements.emptyState.style.display = 'block';
+                elements.resultsContainer.style.display = 'none';
+                return;
+            }
+            
+            elements.emptyState.style.display = 'none';
+            elements.resultsContainer.style.display = 'block';
+            
+            displaySessionResults(results);
+        }
+        
+        // セッション結果表示
+        function displaySessionResults(results) {
+            // ヘッダー統計更新
+            elements.participantCount.textContent = results.participantCount;
+            elements.responseCount.textContent = results.responseCount;
+            elements.consensusCount.textContent = results.consensusPoints?.length || 0;
+            
+            // セッションテーマ
+            elements.sessionTheme.textContent = results.theme;
+            
+            // 質問テキスト設定
+            elements.questionText1.textContent = results.questions[0] || '';
+            elements.questionText2.textContent = results.questions[1] || '';
+            elements.questionText3.textContent = results.questions[2] || '';
+            
+            // 質問別回答表示
+            displayResponsesByQuestion(results.responsesByQuestion);
+            
+            // AI分析結果表示（存在する場合）
+            if (results.summary) {
+                displayAiSummary(results.summary);
+            }
+        }
+        
+        // 質問別回答表示
+        function displayResponsesByQuestion(responsesByQuestion) {
+            Object.keys(responsesByQuestion).forEach(questionType => {
+                const questionNumber = getQuestionNumber(questionType);
+                const responsesList = elements[`responsesList${questionNumber}`];
+                const responses = responsesByQuestion[questionType];
+                
+                responsesList.innerHTML = '';
+                
+                responses.forEach(response => {
+                    const responseCard = createResponseCard(response);
+                    responsesList.appendChild(responseCard);
+                });
+            });
+        }
+        
+        // 回答カード作成
+        function createResponseCard(response) {
+            const card = document.createElement('div');
+            card.className = 'response-card';
+            
+            const participantName = response.participant_id.replace('participant_', '参加者');
+            
+            card.innerHTML = `
+                <div class="response-header">
+                    <div class="participant-name">${escapeHtml(participantName)}</div>
+                </div>
+                <div class="response-text">${escapeHtml(response.user_input)}</div>
+                ${response.ai_response ? `<div class="ai-feedback">${escapeHtml(response.ai_response)}</div>` : ''}
+            `;
+            
+            return card;
+        }
+        
+        // タブ切り替え
+        function switchTab(questionNumber) {
+            currentTab = questionNumber;
+            
+            // タブのアクティブ状態更新
+            elements.questionTabs.forEach(tab => {
+                tab.classList.toggle('active', parseInt(tab.dataset.question) === questionNumber);
+            });
+            
+            // コンテンツの表示切り替え
+            for (let i = 1; i <= 3; i++) {
+                const content = document.getElementById(`questionContent${i}`);
+                content.classList.toggle('active', i === questionNumber);
+            }
+        }
+        
+        // AI分析実行
+        function generateAiSummary() {
+            if (!sessionData || sessionData.responseCount === 0) {
+                showError('分析するデータがありません');
+                return;
+            }
+            
+            showLoading(true, 'AI分析を実行中...');
+            elements.generateSummaryBtn.disabled = true;
+            
+            google.script.run
+                .withSuccessHandler(handleAiSummaryGenerated)
+                .withFailureHandler(handleAiSummaryError)
+                .generateSessionSummary(sessionId);
+        }
+        
+        function handleAiSummaryGenerated(summary) {
+            showLoading(false);
+            elements.generateSummaryBtn.disabled = false;
+            
+            if (summary && summary.success) {
+                displayAiSummary(summary);
+                // 統計を更新
+                elements.consensusCount.textContent = summary.consensusPoints?.length || 0;
+            } else {
+                showError('AI分析の実行に失敗しました');
+            }
+        }
+        
+        function handleAiSummaryError(error) {
+            showLoading(false);
+            elements.generateSummaryBtn.disabled = false;
+            showError('AI分析エラー: ' + error.toString());
+        }
+        
+        // AI分析結果表示
+        function displayAiSummary(summary) {
+            // 合意点表示
+            elements.consensusPoints.innerHTML = '';
+            if (summary.consensusPoints && summary.consensusPoints.length > 0) {
+                summary.consensusPoints.forEach(point => {
+                    const pointDiv = document.createElement('div');
+                    pointDiv.className = 'consensus-point';
+                    pointDiv.textContent = point;
+                    elements.consensusPoints.appendChild(pointDiv);
+                });
+            } else {
+                elements.consensusPoints.innerHTML = '<p>明確な合意点は見つかりませんでした。</p>';
+            }
+            
+            // 多様な意見表示
+            elements.divergentPoints.innerHTML = '';
+            if (summary.divergentPoints && summary.divergentPoints.length > 0) {
+                summary.divergentPoints.forEach(point => {
+                    const pointDiv = document.createElement('div');
+                    pointDiv.className = 'divergent-point';
+                    pointDiv.textContent = point;
+                    elements.divergentPoints.appendChild(pointDiv);
+                });
+            } else {
+                elements.divergentPoints.innerHTML = '<p>意見の多様性は限定的でした。</p>';
+            }
+        }
+        
+        // 結果エクスポート（仮実装）
+        function exportResults() {
+            if (!sessionData) {
+                showError('エクスポートするデータがありません');
+                return;
+            }
+            
+            // CSVファイルとしてダウンロード
+            const csvContent = generateCsvContent(sessionData);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `session_results_${sessionId}.csv`;
+            link.click();
+        }
+        
+        // CSV生成
+        function generateCsvContent(data) {
+            const headers = ['参加者ID', '質問タイプ', '質問内容', '回答', 'AI応答', '回答時刻'];
+            const rows = [headers.join(',')];
+            
+            Object.keys(data.responsesByQuestion).forEach(questionType => {
+                const responses = data.responsesByQuestion[questionType];
+                const questionNumber = getQuestionNumber(questionType);
+                const questionText = data.questions[questionNumber - 1] || '';
+                
+                responses.forEach(response => {
+                    const row = [
+                        `"${response.participant_id}"`,
+                        `"${questionType}"`,
+                        `"${questionText.replace(/"/g, '""')}"`,
+                        `"${response.user_input.replace(/"/g, '""')}"`,
+                        `"${(response.ai_response || '').replace(/"/g, '""')}"`,
+                        `"${response.timestamp}"`
+                    ];
+                    rows.push(row.join(','));
+                });
+            });
+            
+            return rows.join('\n');
+        }
+        
+        // ユーティリティ関数
+        function getQuestionNumber(questionType) {
+            const mapping = {
+                'fixed_1': 1,
+                'fixed_2': 2,
+                'free_discussion': 3
+            };
+            return mapping[questionType] || 1;
+        }
+        
+        function showLoading(show, text = '読み込み中...') {
+            elements.loading.classList.toggle('show', show);
+            if (text) {
+                elements.loadingText.textContent = text;
+            }
+        }
+        
+        function showError(message) {
+            elements.error.textContent = message;
+            elements.error.classList.add('show');
+            setTimeout(() => elements.error.classList.remove('show'), 5000);
+        }
+        
+        function hideError() {
+            elements.error.classList.remove('show');
+        }
+        
+        function handleError(error) {
+            showLoading(false);
+            showError(error.toString());
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+    </script>
+</body>
+</html>
