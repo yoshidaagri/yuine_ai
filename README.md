@@ -111,6 +111,12 @@ yuine_ai/
 
 MIT License
 
+## 着想について
+
+このアプリは深津さんのポッドキャストから着想を得ました。
+
+**参考ポッドキャスト**: [深津さんのポッドキャスト](https://open.spotify.com/episode/0QJeULQ5hrRly9UWhxYQto?si=v_kI4PkuTUaLM_QxbTsMBg)
+
 ## 開発・メンテナンス
 
 このプロジェクトは集合知の活用を目的としたオープンソースプロジェクトです。
