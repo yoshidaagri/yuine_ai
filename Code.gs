@@ -623,6 +623,9 @@ function generateQuestionsWithGemini(theme) {
 2. 定型質問2: 具体的な経験・事例を聞く質問  
 3. 深掘り質問: AIとの対話で議論を深められる開放的な質問
 
+質問は80文字程度にしてください
+定型質問1と定型質問2は例を示してください
+
 JSON形式で出力してください：
 {
   "fixed_1": "質問文",
@@ -791,10 +794,142 @@ function getDeploymentId() {
 }
 
 /**
+ * URL詳細分析関数
+ * @param {string} url - アクセスされたURL
+ * @param {string} userAgent - User-Agent文字列
+ * @returns {Object} URL分析結果
+ */
+function analyzeUrl(url, userAgent) {
+  const analysis = {
+    originalUrl: url,
+    userAgent: userAgent,
+    hasUserPath: false,
+    userNumber: null,
+    scriptId: null,
+    cleanUrl: null,
+    urlParts: {}
+  };
+  
+  if (!url || url === 'unknown') {
+    return analysis;
+  }
+  
+  // URLを分解
+  try {
+    const urlObj = new URL(url);
+    analysis.urlParts = {
+      protocol: urlObj.protocol,
+      host: urlObj.host,
+      pathname: urlObj.pathname,
+      search: urlObj.search,
+      hash: urlObj.hash
+    };
+    
+    // /u/X/ パターンをチェック
+    const userPathMatch = url.match(/\/u\/(\d+)\//);
+    if (userPathMatch) {
+      analysis.hasUserPath = true;
+      analysis.userNumber = userPathMatch[1];
+    }
+    
+    // スクリプトIDを抽出
+    const scriptIdMatch = url.match(/\/macros\/(?:u\/\d+\/)?s\/([^\/]+)\//);
+    if (scriptIdMatch) {
+      analysis.scriptId = scriptIdMatch[1];
+    }
+    
+    // クリーンなURL（/u/X/なし）を生成
+    if (analysis.hasUserPath && analysis.scriptId) {
+      analysis.cleanUrl = url.replace(/\/u\/\d+\//, '/');
+    } else {
+      analysis.cleanUrl = url;
+    }
+    
+  } catch (error) {
+    analysis.error = error.toString();
+  }
+  
+  return analysis;
+}
+
+/**
+ * QRスキャナー/WebViewを検出する関数
+ * @param {string} userAgent - User-Agent文字列
+ * @returns {boolean} QRスキャナーの可能性がある場合true
+ */
+function detectQrScanner(userAgent) {
+  if (!userAgent || userAgent === 'unknown') return false;
+  
+  const ua = userAgent.toLowerCase();
+  
+  // QRスキャナーアプリやWebViewのパターン
+  const qrScannerPatterns = [
+    // iOS
+    'ios.*webview',
+    'cfnetwork',
+    'mobile.*webkit.*version/.*safari',
+    
+    // Android
+    'android.*webview',
+    'android.*chrome.*wv',
+    'android.*version.*chrome',
+    
+    // 一般的なQRスキャナーアプリ
+    'qr',
+    'scanner',
+    'camera',
+    
+    // WebView系
+    'webview',
+    'embedded',
+    'inapp',
+    
+    // 特定のアプリ
+    'line',
+    'twitter',
+    'facebook',
+    'instagram',
+    'wechat'
+  ];
+  
+  return qrScannerPatterns.some(pattern => ua.includes(pattern));
+}
+
+/**
  * GET リクエスト処理
  */
 function doGet(e) {
-  DEBUG.log('doGet関数呼び出し', { parameters: e.parameter });
+  // User-Agent情報を取得・解析
+  const userAgent = e.request ? e.request.headers['User-Agent'] : 'unknown';
+  const referer = e.request ? e.request.headers['Referer'] : 'none';
+  const requestUrl = e.request ? e.request.url : 'unknown';
+  
+  // QRスキャナー/WebViewの検出パターン
+  const isQrScanner = detectQrScanner(userAgent);
+  const accessInfo = {
+    userAgent: userAgent,
+    referer: referer,
+    requestUrl: requestUrl,
+    isQrScanner: isQrScanner,
+    timestamp: new Date().toISOString()
+  };
+  
+  DEBUG.log('doGet関数呼び出し', { 
+    parameters: e.parameter,
+    accessInfo: accessInfo
+  });
+  
+  // 詳細URL分析
+  const urlAnalysis = analyzeUrl(requestUrl, userAgent);
+  DEBUG.log('📊 URL詳細分析', urlAnalysis);
+  
+  // QRスキャナーからのアクセスの場合、特別ログ
+  if (isQrScanner) {
+    DEBUG.log('🔍 QRスキャナーからのアクセス検出', {
+      ...accessInfo,
+      urlAnalysis: urlAnalysis
+    });
+  }
   
   const page = e.parameter.page || 'admin';
   const sessionId = e.parameter.sessionId;

@@ -488,6 +488,18 @@
                 <h4>🎉 セッションが作成されました！</h4>
                 <p><strong>参加者用URL:</strong></p>
                 <div id="urlDisplay" class="url-display"></div>
+                
+                <!-- URL調査用の詳細表示 -->
+                <div class="url-debug" id="urlDebug" style="margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 8px; font-size: 12px;">
+                    <h5 style="margin-bottom: 10px; color: #1565c0;">🔍 URL調査情報</h5>
+                    <div><strong>生成されたURL:</strong></div>
+                    <div id="generatedUrl" style="word-break: break-all; margin-bottom: 10px; color: #333;"></div>
+                    <div><strong>現在のブラウザURL:</strong></div>
+                    <div id="currentBrowserUrl" style="word-break: break-all; margin-bottom: 10px; color: #666;"></div>
+                    <div><strong>スクリプトID:</strong></div>
+                    <div id="extractedScriptId" style="word-break: break-all; color: #999;"></div>
+                </div>
+                
                 <div class="btn-group">
                     <button type="button" id="copyUrlBtn" class="btn btn-secondary">URLをコピー</button>
                     <button type="button" id="generateQrBtn" class="btn btn-secondary">QRコード生成</button>
@@ -733,11 +745,12 @@
                 console.log('現在のURL:', currentUrl);
                 
                 let participantUrl;
-                const match = currentUrl.match(/\/macros\/s\/([^\/]+)\//);
+                // URLから u/2 や u/0 などの部分を除去してスクリプトIDを抽出
+                const match = currentUrl.match(/\/macros\/(?:u\/\d+\/)?s\/([^\/]+)\//);
                 if (match) {
                     const scriptId = match[1];
                     participantUrl = 'https://script.google.com/macros/s/' + scriptId + '/exec?page=session&sessionId=' + result.sessionId;
-                    console.log('スクリプトIDから生成したURL:', participantUrl);
+                    console.log('スクリプトIDから生成したURL（u/x除去後）:', participantUrl);
                 } else {
                     // フォールバック（サーバーサイドから取得したデプロイIDを使用）
                     participantUrl = 'https://script.google.com/macros/s/<?= deploymentId ?>/exec?page=session&sessionId=' + result.sessionId;
@@ -745,6 +758,12 @@
                 }
                 
                 elements.urlDisplay.textContent = participantUrl;
+                
+                // URL調査情報を表示
+                document.getElementById('generatedUrl').textContent = participantUrl;
+                document.getElementById('currentBrowserUrl').textContent = currentUrl;
+                document.getElementById('extractedScriptId').textContent = match ? match[1] : 'フォールバック使用';
+                
                 elements.sessionUrl.classList.add('show');
                 elements.form.style.display = 'none';
             } else {
